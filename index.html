@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CreatorHub Dashboard</title>
+    <title>CreatorHub Dashboard Pro</title>
     <style>
-        /* CSS: Mengatur tampilan halaman agar rapi dan modern */
+        /* CSS UTAMA */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f7f6;
@@ -17,39 +17,31 @@
             text-align: center;
             margin-bottom: 30px;
         }
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-        /* Grid untuk kartu konten */
+        h1 { color: #2c3e50; margin-bottom: 5px; }
+        
+        /* Grid Kartu */
         .grid-konten {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
             max-width: 1200px;
             margin: 0 auto;
         }
-        /* Desain Kartu Konten */
+        
+        /* Desain Kartu */
         .card {
             background: white;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             border-left: 5px solid #3498db;
-            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        .card h3 {
-            margin-top: 0;
-            color: #2c3e50;
-        }
-        .card p {
-            font-size: 14px;
-            color: #7f8c8d;
-            margin: 5px 0;
-        }
+        .card h3 { margin-top: 0; color: #2c3e50; }
+        .card p { font-size: 14px; color: #7f8c8d; margin: 5px 0; }
+        
         /* Badge Status */
         .badge {
             display: inline-block;
@@ -58,37 +50,124 @@
             font-size: 12px;
             font-weight: bold;
             text-transform: uppercase;
-            margin-top: 10px;
+            width: fit-content;
+            margin-top: 5px;
         }
         .status-idea { background-color: #ffeaa7; color: #d63031; }
         .status-editing { background-color: #74b9ff; color: #0984e3; }
         .status-done { background-color: #55efc4; color: #00b894; }
         
-        .loading {
-            text-align: center;
-            font-size: 18px;
-            color: #7f8c8d;
-            grid-column: 1 / -1;
+        /* Fitur Countdown */
+        .countdown-box {
+            background-color: #fff5f5;
+            border: 1px dashed #ff7675;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #d63031;
+            font-weight: bold;
         }
+
+        /* Tombol Integrasi TikTok */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn {
+            flex: 1;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-tiktok {
+            background-color: #010101;
+            color: white;
+            border: 1px solid #fe2c55;
+        }
+        .btn-studio {
+            background-color: #fe2c55;
+            color: white;
+        }
+        .btn:hover { opacity: 0.9; }
+
+        /* CSS POP-UP / MODAL NOTIFIKASI */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            visibility: hidden; /* Tersembunyi default */
+            opacity: 0;
+            transition: 0.3s;
+        }
+        .modal-box {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-top: 8px solid #fe2c55;
+            animation: animeOpen 0.3s ease;
+        }
+        @keyframes animeOpen {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-box h2 { color: #d63031; margin-top: 0; display: flex; align-items: center; gap: 10px; }
+        .urgent-item {
+            background: #f9f9f9;
+            padding: 12px;
+            border-left: 4px solid #fe2c55;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .btn-close {
+            background: #2c3e50;
+            color: white;
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+        }
+
+        .loading { text-align: center; font-size: 18px; color: #7f8c8d; grid-column: 1 / -1; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🎬 CreatorHub Dashboard</h1>
-        <p>Pantau semua rencana dan status produksi kontenmu</p>
+        <h1>🎬 CreatorHub Dashboard Pro</h1>
+        <p>Sistem Pantau Otomatis Rencana Konten Masakan</p>
     </header>
 
-    <!-- Tempat di mana kartu konten akan dimunculkan secara otomatis -->
     <main class="grid-konten" id="container-konten">
-        <div class="loading">Memuat data dari Google Sheets...</div>
+        <div class="loading">Memuat database Google Sheets...</div>
     </main>
 
+    <!-- STRUKTUR POP-UP (MODAL) -->
+    <div class="modal-overlay" id="popup-notif">
+        <div class="modal-box">
+            <h2>⚠️ PING! SEGERA POSTING</h2>
+            <p>Konten berikut memasuki waktu krusial (kurang dari 24 jam menuju jadwal tayang):</p>
+            <div id="list-notif-mendesak"></div>
+            <button class="btn btn-close" onclick="tutupPopup()">Saya Mengerti, Ambil Tindakan</button>
+        </div>
+    }</div>
+
     <script>
-        // JAVASCRIPT: Mengambil data dari Google Sheets via API
-        
-        // PENTING: Ganti URL di bawah ini dengan URL API SheetDB atau Google Apps Script kamu sendiri!
-        const URL_API = 'https://script.google.com/macros/s/AKfycbzuPevzq9eyXTsSltYNnI5qibXzMVCGLUXuL8pYdHLFJmnD0hg5FCuUYRnsHRoNGjZRVQ/exec'; 
+        // MASUKKAN URL API KAMU DI SINI
+        const URL_API = 'https://sheetdb.io/api/v1/KODE_API_KAMU'; 
 
         async function ambilDataKonten() {
             try {
@@ -96,42 +175,101 @@
                 const data = await respon.json();
                 
                 const container = document.getElementById('container-konten');
-                container.innerHTML = ''; // Menghilangkan tulisan "Memuat data..."
+                container.innerHTML = ''; 
 
-                if(data.length === 0) {
-                    container.innerHTML = '<div class="loading">Belum ada ide konten yang dicatat.</div>';
-                    return;
-                }
+                let listMendesakHTML = ''; // Untuk menampung isi pop-up
+                let adaKontenMendesak = false;
 
-                // Melakukan perulangan untuk setiap baris data di Google Sheets
                 data.forEach(konten => {
-                    // Menentukan warna badge berdasarkan status
+                    // 1. Mengolah Waktu Konten vs Waktu Sekarang
+                    const waktuTarget = new Date(konten.Tanggal.replace(' ', 'T'));
+                    const waktuSekarang = new Date();
+                    const selisihMilidetik = waktuTarget - waktuSekarang;
+                    
+                    let htmlCountdown = '';
+                    let statusMendesak = false;
+
+                    if (selisihMilidetik > 0) {
+                        const totalJam = Math.floor(selisihMilidetik / (1000 * 60 * 60));
+                        const sisaMenit = Math.floor((selisihMilidetik % (1000 * 60 * 60)) / (1000 * 60));
+                        
+                        // Jika sisa waktu kurang dari atau sama dengan 24 jam (1 Hari)
+                        if (totalJam < 24) {
+                            htmlCountdown = `<div class="countdown-box">⏳ Tayang dalam: ${totalJam} Jam ${sisaMenit} Menit lagi!</div>`;
+                            statusMendesak = true;
+                        } else {
+                            const hari = Math.floor(totalJam / 24);
+                            htmlCountdown = `<div class="countdown-box" style="color:#2ecc71; border-color:#2ecc71; background-color:#f4fbf7;">📅 ${hari} Hari lagi</div>`;
+                        }
+                    } else {
+                        htmlCountdown = `<div class="countdown-box" style="color:#7f8c8d; border-color:#b2bec3; background-color:#f1f2f6;">✔️ Lewat Jadwal / Sudah Tayang</div>`;
+                    }
+
+                    // 2. Kumpulkan data untuk Pop-up jika konten mendesak & belum selesai dibagikan
+                    if (statusMendesak && konten.Status.toLowerCase() !== 'done' && konten.Status.toLowerCase() !== 'published') {
+                        adaKontenMendesak = true;
+                        listMendesakHTML += `
+                            <div class="urgent-item">
+                                <strong>🎯 ${konten.Judul}</strong><br>
+                                <small>Platform: ${konten.Platform} | Status: ${konten.Status}</small>
+                            </div>
+                        `;
+                    }
+
+                    // 3. Menentukan warna Badge Status
                     let kelasStatus = 'status-idea';
                     if (konten.Status.toLowerCase() === 'editing') kelasStatus = 'status-editing';
                     if (konten.Status.toLowerCase() === 'done' || konten.Status.toLowerCase() === 'published') kelasStatus = 'status-done';
 
-                    // Membuat elemen HTML untuk kartu
+                    // 4. Membuat Tombol Pintasan Khusus TikTok
+                    let htmlTombolTikTok = '';
+                    if (konten.Platform.toLowerCase() === 'tiktok') {
+                        htmlTombolTikTok = `
+                            <div class="action-buttons">
+                                <a href="https://www.tiktok.com/upload?lang=id-ID" target="_blank" class="btn btn-tiktok">🚀 Post ke TikTok</a>
+                                <a href="https://www.tiktok.com/tiktokstudio/content" target="_blank" class="btn btn-studio">🛠️ TikTok Studio</a>
+                            </div>
+                        `;
+                    }
+
+                    // 5. Gambar Kartu ke Dashboard
                     const kartu = document.createElement('div');
                     kartu.className = 'card';
                     kartu.innerHTML = `
-                        <h3>${konten.Judul}</h3>
-                        <p><strong>Platform:</strong> ${konten.Platform}</p>
-                        <p><strong>Jadwal Tayang:</strong> ${konten.Tanggal}</p>
-                        <span class="badge ${kelasStatus}">${konten.Status}</span>
+                        <div>
+                            <h3>${konten.Judul}</h3>
+                            <p><strong>Platform:</strong> ${konten.Platform}</p>
+                            <p><strong>Jadwal Tayang:</strong> ${konten.Tanggal}</p>
+                            <span class="badge ${kelasStatus}">${konten.Status}</span>
+                            ${htmlCountdown}
+                        </div>
+                        ${htmlTombolTikTok}
                     `;
-                    
-                    // Masukkan kartu ke dalam grid
                     container.appendChild(kartu);
                 });
 
+                // 6. Jika ada konten mendesak (< 24 Jam), Munculkan Pop-up!
+                if (adaKontenMendesak) {
+                    document.getElementById('list-notif-mendesak').innerHTML = listMendesakHTML;
+                    const overlay = document.getElementById('popup-notif');
+                    overlay.style.visibility = 'visible';
+                    overlay.style.opacity = '1';
+                }
+
             } catch (error) {
-                console.error("Gagal mengambil data:", error);
-                document.getElementById('container-konten').innerHTML = 
-                    '<div class="loading" style="color:red;">Gagal memuat data. Periksa kembali koneksi atau URL API kamu.</div>';
+                console.error("Gagal memuat data:", error);
+                document.getElementById('container-konten').innerHTML = '<div class="loading" style="color:red;">Gagal membaca database Google Sheets.</div>';
             }
         }
 
-        // Jalankan fungsi saat halaman web dibuka
+        // Fungsi Menutup Pop-up
+        function tutupPopup() {
+            const overlay = document.getElementById('popup-notif');
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.visibility = 'hidden', 300);
+        }
+
+        // Jalankan fungsi otomatis saat dibuka
         ambilDataKonten();
     </script>
 </body>
