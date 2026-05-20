@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CreatorHub Dashboard</title>
+    <style>
+        /* CSS: Mengatur tampilan halaman agar rapi dan modern */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        /* Grid untuk kartu konten */
+        .grid-konten {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        /* Desain Kartu Konten */
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 5px solid #3498db;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .card p {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin: 5px 0;
+        }
+        /* Badge Status */
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+        .status-idea { background-color: #ffeaa7; color: #d63031; }
+        .status-editing { background-color: #74b9ff; color: #0984e3; }
+        .status-done { background-color: #55efc4; color: #00b894; }
+        
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #7f8c8d;
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎬 CreatorHub Dashboard</h1>
+        <p>Pantau semua rencana dan status produksi kontenmu</p>
+    </header>
+
+    <!-- Tempat di mana kartu konten akan dimunculkan secara otomatis -->
+    <main class="grid-konten" id="container-konten">
+        <div class="loading">Memuat data dari Google Sheets...</div>
+    </main>
+
+    <script>
+        // JAVASCRIPT: Mengambil data dari Google Sheets via API
+        
+        // PENTING: Ganti URL di bawah ini dengan URL API SheetDB atau Google Apps Script kamu sendiri!
+        const URL_API = 'https://sheetdb.io/api/v1/KODE_API_KAMU'; 
+
+        async function ambilDataKonten() {
+            try {
+                const respon = await fetch(URL_API);
+                const data = await respon.json();
+                
+                const container = document.getElementById('container-konten');
+                container.innerHTML = ''; // Menghilangkan tulisan "Memuat data..."
+
+                if(data.length === 0) {
+                    container.innerHTML = '<div class="loading">Belum ada ide konten yang dicatat.</div>';
+                    return;
+                }
+
+                // Melakukan perulangan untuk setiap baris data di Google Sheets
+                data.forEach(konten => {
+                    // Menentukan warna badge berdasarkan status
+                    let kelasStatus = 'status-idea';
+                    if (konten.Status.toLowerCase() === 'editing') kelasStatus = 'status-editing';
+                    if (konten.Status.toLowerCase() === 'done' || konten.Status.toLowerCase() === 'published') kelasStatus = 'status-done';
+
+                    // Membuat elemen HTML untuk kartu
+                    const kartu = document.createElement('div');
+                    kartu.className = 'card';
+                    kartu.innerHTML = `
+                        <h3>${konten.Judul}</h3>
+                        <p><strong>Platform:</strong> ${konten.Platform}</p>
+                        <p><strong>Jadwal Tayang:</strong> ${konten.Tanggal}</p>
+                        <span class="badge ${kelasStatus}">${konten.Status}</span>
+                    `;
+                    
+                    // Masukkan kartu ke dalam grid
+                    container.appendChild(kartu);
+                });
+
+            } catch (error) {
+                console.error("Gagal mengambil data:", error);
+                document.getElementById('container-konten').innerHTML = 
+                    '<div class="loading" style="color:red;">Gagal memuat data. Periksa kembali koneksi atau URL API kamu.</div>';
+            }
+        }
+
+        // Jalankan fungsi saat halaman web dibuka
+        ambilDataKonten();
+    </script>
+</body>
+</html>
