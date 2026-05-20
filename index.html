@@ -107,7 +107,7 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            visibility: hidden; /* Tersembunyi default */
+            visibility: hidden;
             opacity: 0;
             transition: 0.3s;
         }
@@ -115,19 +115,37 @@
             background: white;
             padding: 25px;
             border-radius: 15px;
-            max-width: 450px;
+            max-width: 500px;
             width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            border-top: 8px solid #fe2c55;
+            border-top: 8px solid #3498db;
             animation: animeOpen 0.3s ease;
         }
         @keyframes animeOpen {
             from { transform: translateY(-20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-        .modal-box h2 { color: #d63031; margin-top: 0; display: flex; align-items: center; gap: 10px; }
+        .modal-box h2 { color: #2c3e50; margin-top: 0; text-align: center; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 15px 0 5px 0;
+            text-transform: uppercase;
+        }
+
+        /* Item List di Pop-up */
+        .ready-item {
+            background: #f4fbf7;
+            padding: 12px;
+            border-left: 4px solid #00b894;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
         .urgent-item {
-            background: #f9f9f9;
+            background: #fff5f5;
             padding: 12px;
             border-left: 4px solid #fe2c55;
             margin-bottom: 10px;
@@ -137,8 +155,9 @@
             background: #2c3e50;
             color: white;
             width: 100%;
-            padding: 10px;
-            margin-top: 15px;
+            padding: 12px;
+            margin-top: 20px;
+            font-size: 14px;
         }
 
         .loading { text-align: center; font-size: 18px; color: #7f8c8d; grid-column: 1 / -1; }
@@ -155,15 +174,26 @@
         <div class="loading">Memuat database Google Sheets...</div>
     </main>
 
-    <!-- STRUKTUR POP-UP (MODAL) -->
+    <!-- POP-UP UTAMA -->
     <div class="modal-overlay" id="popup-notif">
         <div class="modal-box">
-            <h2>⚠️ PING! SEGERA POSTING</h2>
-            <p>Konten berikut memasuki waktu krusial (kurang dari 24 jam menuju jadwal tayang):</p>
-            <div id="list-notif-mendesak"></div>
+            <h2>📢 PEMBERITAHUAN KREATOR</h2>
+            
+            <!-- Blok Notifikasi Konten Siap Posting -->
+            <div id="wrapper-siap" style="display: none;">
+                <div class="section-title" style="color: #00b894;">✅ SIAP POSTING (Status: Done)</div>
+                <div id="list-notif-siap"></div>
+            </div>
+
+            <!-- Blok Notifikasi Konten Mendesak -->
+            <div id="wrapper-mendesak" style="display: none;">
+                <div class="section-title" style="color: #d63031;">⚠️ PERINGATAN JADWAL (Mendekati Tayang)</div>
+                <div id="list-notif-mendesak"></div>
+            </div>
+
             <button class="btn btn-close" onclick="tutupPopup()">Saya Mengerti, Ambil Tindakan</button>
         </div>
-    }</div>
+    </div>
 
     <script>
         // MASUKKAN URL API KAMU DI SINI
@@ -177,11 +207,13 @@
                 const container = document.getElementById('container-konten');
                 container.innerHTML = ''; 
 
-                let listMendesakHTML = ''; // Untuk menampung isi pop-up
+                let listSiapHTML = '';
+                let listMendesakHTML = '';
+                let adaKontenSiap = false;
                 let adaKontenMendesak = false;
 
                 data.forEach(konten => {
-                    // 1. Mengolah Waktu Konten vs Waktu Sekarang
+                    // 1. Olah Waktu untuk Hitung Mundur
                     const waktuTarget = new Date(konten.Tanggal.replace(' ', 'T'));
                     const waktuSekarang = new Date();
                     const selisihMilidetik = waktuTarget - waktuSekarang;
@@ -193,7 +225,6 @@
                         const totalJam = Math.floor(selisihMilidetik / (1000 * 60 * 60));
                         const sisaMenit = Math.floor((selisihMilidetik % (1000 * 60 * 60)) / (1000 * 60));
                         
-                        // Jika sisa waktu kurang dari atau sama dengan 24 jam (1 Hari)
                         if (totalJam < 24) {
                             htmlCountdown = `<div class="countdown-box">⏳ Tayang dalam: ${totalJam} Jam ${sisaMenit} Menit lagi!</div>`;
                             statusMendesak = true;
@@ -205,23 +236,34 @@
                         htmlCountdown = `<div class="countdown-box" style="color:#7f8c8d; border-color:#b2bec3; background-color:#f1f2f6;">✔️ Lewat Jadwal / Sudah Tayang</div>`;
                     }
 
-                    // 2. Kumpulkan data untuk Pop-up jika konten mendesak & belum selesai dibagikan
-                    if (statusMendesak && konten.Status.toLowerCase() !== 'done' && konten.Status.toLowerCase() !== 'published') {
-                        adaKontenMendesak = true;
-                        listMendesakHTML += `
-                            <div class="urgent-item">
-                                <strong>🎯 ${konten.Judul}</strong><br>
-                                <small>Platform: ${konten.Platform} | Status: ${konten.Status}</small>
+                    // 2. LOGIKA POP-UP A: Cek Apakah Statusnya "Done" atau "Published" (Siap Posting)
+                    if (konten.Status.toLowerCase() === 'done' || konten.Status.toLowerCase() === 'published') {
+                        adaKontenSiap = true;
+                        listSiapHTML += `
+                            <div class="ready-item">
+                                <strong>🟢 ${konten.Judul}</strong><br>
+                                <small>Platform: ${konten.Platform} | Jadwal: ${konten.Tanggal}</small>
                             </div>
                         `;
                     }
 
-                    // 3. Menentukan warna Badge Status
+                    // 3. LOGIKA POP-UP B: Cek Apakah Mendesak (< 24 Jam) tapi Belum Selesai (Masih Berstatus Idea/Editing)
+                    if (statusMendesak && konten.Status.toLowerCase() !== 'done' && konten.Status.toLowerCase() !== 'published') {
+                        adaKontenMendesak = true;
+                        listMendesakHTML += `
+                            <div class="urgent-item">
+                                <strong>🔴 ${konten.Judul}</strong><br>
+                                <small>Platform: ${konten.Platform} | Status saat ini: ${konten.Status}</small>
+                            </div>
+                        `;
+                    }
+
+                    // 4. Menentukan Warna Badge Status di Grid Utama
                     let kelasStatus = 'status-idea';
                     if (konten.Status.toLowerCase() === 'editing') kelasStatus = 'status-editing';
                     if (konten.Status.toLowerCase() === 'done' || konten.Status.toLowerCase() === 'published') kelasStatus = 'status-done';
 
-                    // 4. Membuat Tombol Pintasan Khusus TikTok
+                    // 5. Membuat Tombol Pintasan TikTok jika platformnya TikTok
                     let htmlTombolTikTok = '';
                     if (konten.Platform.toLowerCase() === 'tiktok') {
                         htmlTombolTikTok = `
@@ -232,7 +274,7 @@
                         `;
                     }
 
-                    // 5. Gambar Kartu ke Dashboard
+                    // 6. Cetak Kartu ke Layar Dashboard
                     const kartu = document.createElement('div');
                     kartu.className = 'card';
                     kartu.innerHTML = `
@@ -248,9 +290,20 @@
                     container.appendChild(kartu);
                 });
 
-                // 6. Jika ada konten mendesak (< 24 Jam), Munculkan Pop-up!
-                if (adaKontenMendesak) {
-                    document.getElementById('list-notif-mendesak').innerHTML = listMendesakHTML;
+                // 7. EKSEKUSI POP-UP PADA SAAT PERTAMA KALI MEMBUKA HALAMAN
+                if (adaKontenSiap || adaKontenMendesak) {
+                    // Isi data "Siap Posting" jika ada
+                    if (adaKontenSiap) {
+                        document.getElementById('list-notif-siap').innerHTML = listSiapHTML;
+                        document.getElementById('wrapper-siap').style.display = 'block';
+                    }
+                    // Isi data "Mendesak" jika ada
+                    if (adaKontenMendesak) {
+                        document.getElementById('list-notif-mendesak').innerHTML = listMendesakHTML;
+                        document.getElementById('wrapper-mendesak').style.display = 'block';
+                    }
+
+                    // Munculkan kontainer pop-up ke layar browser
                     const overlay = document.getElementById('popup-notif');
                     overlay.style.visibility = 'visible';
                     overlay.style.opacity = '1';
@@ -269,7 +322,7 @@
             setTimeout(() => overlay.style.visibility = 'hidden', 300);
         }
 
-        // Jalankan fungsi otomatis saat dibuka
+        // Jalankan fungsi otomatis sejak awal buka browser
         ambilDataKonten();
     </script>
 </body>
